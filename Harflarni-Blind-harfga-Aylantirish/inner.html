@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braille Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            font-size: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .windows-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .window {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            height: 520px;
+        }
+
+        .left-window {
+            flex: 1;
+        }
+
+        .right-window {
+            flex: 1;
+        }
+
+        .window h2 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 435px;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        #output {
+            font-size: 1.2rem;
+            background-color: #f8f9fa;
+        }
+
+        .file-upload {
+            margin-top: 1rem;
+        }
+
+        .file-upload label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #072bce;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .file-upload label:hover {
+            background: #030e70;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #097217;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #38a169;
+        }
+
+        footer {
+            background: rgb(80, 172, 179);
+            color: black;
+            text-align: center;
+            padding: 1rem;
+            margin-top: auto;
+        }
+
+        .print-content {
+            display: none;
+        }
+
+        @media print {
+            * {
+                visibility: hidden;
+            }
+            .print-content, .print-content * {
+                visibility: visible;
+            }
+            .print-content {
+                position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            }
+            .print-content textarea {
+                border: none;
+                background: white;
+                font-size: 14pt;
+                line-height: 1.5;
+                width: 100%;
+                min-height: auto;
+                resize: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container { 
+                padding: 1rem;
+            }
+            .windows-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .download-buttons {
+                flex-direction: column;
+            }
+            .nav-container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="logo">Braille Converter</a>
+                <div class="nav-links">
+                    <a href="#">Bosh Sahifa</a>
+                    <a href="#">Haqida</a>
+                </div>
+            </nav>
+
+        <div class="container">
+            <h1>DOC, DOCX va PDF hujjatlaringizni BRF faylga aylantiring</h1>
+            <div class="windows-container">
+                <div class="window left-window">
+                    <h2>Matn va Raqam Kiriting</h2>
+                    <textarea id="input" placeholder="Masalan: salom123"></textarea>
+                    <div class="file-upload">
+                        <label for="fileInput">Word yoki PDF yuklash</label>
+                        <input type="file" id="fileInput" accept=".doc,.docx,.pdf">
+                    </div>
+                </div>
+                <div class="window right-window">
+                    <h2>Braille Alifbosi</h2>
+                    <textarea id="output" placeholder="Braille ko'rinishi bu yerda chiqadi" readonly></textarea>
+                    <div class="download-buttons">
+                        <button class="download-btn" onclick="downloadWord()">Word sifatida yuklash</button>
+                        <button class="download-btn" onclick="downloadPDF()">PDF sifatida yuklash</button>
+                        <button class="download-btn" onclick="printBraille()">Chop etish</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="print-content" style="display: none;">
+            <textarea id="printOutput"></textarea>
+        </div>
+
+        <footer>
+            © 2025 Braille Aylantiruvchi. Barcha huquqlar himoyalangan
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.0/dist/pizzip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.28.0/build/docxtemplater.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const printOutput = document.getElementById('printOutput');
+        const fileInput = document.getElementById('fileInput');
+        const { jsPDF } = window.jspdf;
+
+        const brailleMap = {
+            'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑',
+            'f': '⠋', 'g': '⠛', 'h': '⠓', 'i': '⠊', 'j': '⠚',
+            'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕',
+            'p': '⠏', 'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞',
+            'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽',
+            'z': '⠵', ' ': '⠀',
+            '0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙',
+            '5': '⠑', '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊'
+        };
+
+        const numberIndicator = '⠼';
+
+        function encodeToBraille(text) {
+            let result = '';
+            let isNumberMode = false;
+            let lastWasNumber = false;
+
+            text.toLowerCase().split('').forEach(char => {
+                if (/[0-9]/.test(char)) {
+                    if (!isNumberMode) {
+                        result += numberIndicator;
+                        isNumberMode = true;
+                        lastWasNumber = true;
+                    }
+                    result += brailleMap[char];
+                } else {
+                    if (isNumberMode && lastWasNumber) {
+                        isNumberMode = false;
+                    }
+                    lastWasNumber = false;
+                    result += brailleMap[char] || char;
+                }
+            });
+
+            return result;
+        }
+
+        input.addEventListener('input', () => {
+            const inputText = input.value;
+            const brailleText = encodeToBraille(inputText);
+            output.value = brailleText;
+            printOutput.value = brailleText;
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                let text = '';
+                
+                if (file.type === 'application/pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(' ') + '\n';
+                    }
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const zip = new PizZip(arrayBuffer);
+                    const doc = new docxtemplater().loadZip(zip);
+                    text = doc.getFullText();
+                }
+
+                input.value = text;
+                const brailleText = encodeToBraille(text);
+                output.value = brailleText;
+                printOutput.value = brailleText;
+            } catch (error) {
+                alert('Faylni o\'qishda xatolik yuz berdi: ' + error.message);
+            }
+        });
+
+        function downloadWord() {
+            const brailleText = output.value;
+            if (!brailleText) {
+                alert('Avval matn kiriting!');
+                return;
+            }
+            
+            try {
+                const zip = new PizZip();
+                const doc = new docxtemplater().loadZip(zip);
+                doc.setData({ text: brailleText });
+                doc.render();
+                const out = doc.getZip().generate({ type: 'blob' });
+                saveAs(out, 'braille_output.docx');
+            } catch (error) {
+                alert('Word fayl yaratishda xatolik: ' + error.message);
+            }
+        }
+
+        function downloadPDF() {
+            const brailleText = output.value;
+            if (!brailleText) {
+                alert('Avval matn kiriting!');
+                return;
+            }
+            
+            try {
+                const doc = new jsPDF();
+                doc.setFontSize(12);
+                const lines = doc.splitTextToSize(brailleText, 190);
+                let y = 20;
+                
+                lines.forEach(line => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(line, 10, y);
+                    y += 7;
+                });
+                
+                doc.save('braille_output.pdf');
+            } catch (error) {
+                alert('PDF yaratishda xatolik: ' + error.message);
+            }
+        }
+
+        function printBraille() {
+            const brailleText = output.value;
+            if (!brailleText) {
+                alert('Avval matn kiriting!');
+                return;
+            }
+
+            const printContent = document.querySelector('.print-content');
+            printContent.style.display = 'block';
+            window.print();
+            setTimeout(() => {
+                printContent.style.display = 'none';
+            }, 1000);
+        }
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').slice(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        window.addEventListener('beforeprint', () => {
+            document.querySelector('.print-content').style.display = 'block';
+        });
+
+        window.addEventListener('afterprint', () => {
+            document.querySelector('.print-content').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
